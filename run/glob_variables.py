@@ -7,11 +7,7 @@ class UserState:
     admin_message_to_send: str = None
     admin_broadcast: bool = False
     send_to_specified_flag: bool = False
-    messages: dict = field(default_factory=dict)
     search_result: str = None
-    tweet_screenshot: str = None
-    youtube_search: str = None
-    waiting_message: str = None
 
 
 class BotState:
@@ -22,15 +18,16 @@ class BotState:
     load_dotenv('config.env')
 
     BOT_TOKEN = os.getenv('BOT_TOKEN')
-    API_ID = int(os.getenv("API_ID"))
+    API_ID = os.getenv("API_ID")
     API_HASH = os.getenv("API_HASH")
 
-    ADMIN_USER_IDS = [int(id) for id in os.getenv('ADMIN_USER_IDS').split(',')]
+    ADMIN_USER_IDS = os.getenv('ADMIN_USER_IDS').split(',')
 
     if not all([BOT_TOKEN, API_ID, API_HASH, ADMIN_USER_IDS]):
         raise ValueError("Required environment variables are missing.")
 
-    BOT_CLIENT = TelegramClient('bot', API_ID, API_HASH)
+    ADMIN_USER_IDS = [int(id) for id in ADMIN_USER_IDS]
+    BOT_CLIENT = TelegramClient('bot', int(API_ID), API_HASH)
 
     # @staticmethod #[DEPRECATED]
     # def initialize_user_state(user_id):
@@ -63,16 +60,6 @@ class BotState:
         return user_state.admin_message_to_send
 
     @staticmethod
-    async def get_tweet_screenshot(user_id):
-        user_state = await BotState.get_user_state(user_id)
-        return user_state.tweet_screenshot
-
-    @staticmethod
-    async def get_youtube_search(user_id):
-        user_state = await BotState.get_user_state(user_id)
-        return user_state.youtube_search
-
-    @staticmethod
     async def get_admin_broadcast(user_id):
         user_state = await BotState.get_user_state(user_id)
         return user_state.admin_broadcast
@@ -83,34 +70,9 @@ class BotState:
         return user_state.send_to_specified_flag
 
     @staticmethod
-    async def get_messages(user_id):
-        user_state = await BotState.get_user_state(user_id)
-        return user_state.messages
-
-    @staticmethod
-    async def get_search_result(user_id):
-        user_state = await BotState.get_user_state(user_id)
-        return user_state.search_result
-
-    @staticmethod
-    async def get_waiting_message(user_id):
-        user_state = await BotState.get_user_state(user_id)
-        return user_state.waiting_message
-
-    @staticmethod
     async def set_admin_message_to_send(user_id, message):
         user_state = await BotState.get_user_state(user_id)
         user_state.admin_message_to_send = message
-
-    @staticmethod
-    async def set_tweet_screenshot(user_id, value):
-        user_state = await BotState.get_user_state(user_id)
-        user_state.tweet_screenshot = value
-
-    @staticmethod
-    async def set_youtube_search(user_id, value):
-        user_state = await BotState.get_user_state(user_id)
-        user_state.youtube_search = value
 
     @staticmethod
     async def set_admin_broadcast(user_id, value):
@@ -121,18 +83,3 @@ class BotState:
     async def set_send_to_specified_flag(user_id, value):
         user_state = await BotState.get_user_state(user_id)
         user_state.send_to_specified_flag = value
-
-    @staticmethod
-    async def set_messages(user_id, messages):
-        user_state = await BotState.get_user_state(user_id)
-        user_state.messages = messages
-
-    @staticmethod
-    async def set_search_result(user_id, result):
-        user_state = await BotState.get_user_state(user_id)
-        user_state.search_result = result
-
-    @staticmethod
-    async def set_waiting_message(user_id, message):
-        user_state = await BotState.get_user_state(user_id)
-        user_state.waiting_message = message

@@ -34,8 +34,7 @@ class db:
         try:
             await conn.execute('''CREATE TABLE IF NOT EXISTS user_settings
                                 (user_id INTEGER PRIMARY KEY, music_quality TEXT, downloading_core TEXT,
-                                spotify_link_info TEXT, song_dict TEXT, current_page INTEGER DEFAULT 1 ,tweet_url TEXT ,
-                                tweet_capture_settings TEXT, youtube_url TEXT,
+                                tweet_capture_settings TEXT,
                                 is_file_processing BOOLEAN DEFAULT 0,is_user_updated BOOLEAN DEFAULT 1)'''
                                )
             await conn.execute('''CREATE TABLE IF NOT EXISTS subscriptions
@@ -46,10 +45,10 @@ class db:
         except:
             raise
         await db.create_trigger()
-        await db.set_defualt_values()
+        await db.set_default_values()
 
     @classmethod
-    async def set_defualt_values(cls):
+    async def set_default_values(cls):
         cls.default_downloading_core: str = "Auto"
         cls.default_music_quality: dict = {'format': 'flac', 'quality': '693'}
         cls.default_tweet_capture_setting: dict = {'night_mode': '0'}
@@ -226,20 +225,8 @@ class db:
         return result is not None and result[0] == 1
 
     @staticmethod
-    async def set_user_song_dict(user_id, song_dict):
-        serialized_dict = json.dumps(song_dict)
-        await db.execute_query('UPDATE user_settings SET song_dict = ? WHERE user_id = ?', (serialized_dict, user_id))
-
-    @staticmethod
     async def update_user_is_admin(user_id, is_admin):
         await db.execute_query('UPDATE user_settings SET is_admin = ? WHERE user_id = ?', (is_admin, user_id))
-
-    @staticmethod
-    async def get_user_song_dict(user_id):
-        result = await db.fetch_one('SELECT song_dict FROM user_settings WHERE user_id = ?', (user_id,))
-        if result:
-            return json.loads(result[0]) if result[0] else {}
-        return {}
 
     @staticmethod
     async def is_user_admin(user_id):
@@ -275,19 +262,6 @@ class db:
         if result:
             return bool(result[0])
         return False
-
-    @staticmethod
-    async def set_user_spotify_link_info(user_id, spotify_link_info):
-        serialized_info = json.dumps(spotify_link_info)
-        await db.execute_query('UPDATE user_settings SET spotify_link_info = ? WHERE user_id = ?',
-                               (serialized_info, user_id))
-
-    @staticmethod
-    async def get_user_spotify_link_info(user_id):
-        result = await db.fetch_one('SELECT spotify_link_info FROM user_settings WHERE user_id = ?', (user_id,))
-        if result != None:
-            return json.loads(result[0]) if result[0] else {}
-        return {}  # Return an empty dictionary if the user is not found or the Spotify link info is not set
 
     @staticmethod
     async def set_file_processing_flag(user_id, is_processing):
@@ -328,41 +302,6 @@ class db:
     async def get_song_downloads(filename):
         result = await db.fetch_one('SELECT downloads FROM musics WHERE filename = ?', (filename,))
         return result[0] if result else 0
-
-    @staticmethod
-    async def set_tweet_url(user_id, tweet_url):
-        serialized_info = json.dumps(tweet_url)
-        await db.execute_query('UPDATE user_settings SET tweet_url = ? WHERE user_id = ?', (serialized_info, user_id))
-
-    @staticmethod
-    async def get_tweet_url(user_id):
-        result = await db.fetch_one('SELECT tweet_url FROM user_settings WHERE user_id = ?', (user_id,))
-        if result != None:
-            return json.loads(result[0]) if result[0] else {}
-        return {}  # Return an empty dictionary if the user is not found or the tweet_url is not set
-
-    @staticmethod
-    async def set_youtube_url(user_id, youtube_url):
-        serialized_info = json.dumps(youtube_url)
-        await db.execute_query('UPDATE user_settings SET youtube_url = ? WHERE user_id = ?', (serialized_info, user_id))
-
-    @staticmethod
-    async def get_youtube_url(user_id):
-        result = await db.fetch_one('SELECT youtube_url FROM user_settings WHERE user_id = ?', (user_id,))
-        if result != None:
-            return json.loads(result[0]) if result[0] else {}
-        return {}  # Return an empty dictionary if the user is not found or the tweet_url is not set
-
-    @staticmethod
-    async def set_current_page(user_id, page):
-        await db.execute_query('UPDATE user_settings SET current_page = ? WHERE user_id = ?', (page, user_id))
-
-    @staticmethod
-    async def get_current_page(user_id):
-        result = await db.fetch_one('SELECT current_page FROM user_settings WHERE user_id = ?', (user_id,))
-        if result:
-            return result[0]
-        return 1  # Return 1 (the default value) if the user is not found or the current_page is not set
 
     @staticmethod
     async def set_user_tweet_capture_settings(user_id, tweet_capture_settings):
