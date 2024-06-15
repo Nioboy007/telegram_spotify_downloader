@@ -46,30 +46,7 @@ class X:
             return None
 
     @staticmethod
-    async def send_screenshot(client, event, tweet_url) -> bool:
-
-        screenshot_path = await X.take_screenshot_of_tweet(event, tweet_url)
-        has_media = await X.has_media(tweet_url)
-
-        screen_shot_message = await event.respond("Uploading the screenshot. Please stand by...")
-
-        button = Button.inline("Download Media",
-                               data=f"X/dl/{tweet_url.replace("https://x.com/", "")}"
-                               ) if has_media else None
-        try:
-            await client.send_file(
-                event.chat_id,
-                screenshot_path,
-                caption="Here is the requested tweet screenshot.",
-                buttons=button
-            )
-        except Exception as Err:
-            await screen_shot_message.edit(f"Error:\n{str(Err)}")
-            return False
-
-        await screen_shot_message.delete()
-        return True
-
+    
     @staticmethod
     def contains_x_or_twitter_link(text):
         pattern = r'(https?://(?:www\.)?twitter\.com/[^/\s]+/status/\d+|https?://(?:www\.)?x\.com/[^/\s]+)'
@@ -88,7 +65,33 @@ class X:
         elif "twitter.com" in link:
             return link.replace("twitter.com", "fxtwitter.com")
         return link
+        
+@staticmethod
+async def send_screenshot(client, event, tweet_url) -> bool:
 
+    screenshot_path = await X.take_screenshot_of_tweet(event, tweet_url)
+    has_media = await X.has_media(tweet_url)
+
+    screen_shot_message = await event.respond("Uploading the screenshot. Please stand by...")
+
+    button = Button.inline("Download Media",
+                           data=f'X/dl/{tweet_url.replace("https://x.com/", "")}'
+                           ) if has_media else None
+    try:
+        await client.send_file(
+            event.chat_id,
+            screenshot_path,
+            caption="Here is the requested tweet screenshot.",
+            buttons=button
+        )
+    except Exception as Err:
+        await screen_shot_message.edit(f"Error:\n{str(Err)}")
+        return False
+
+    await screen_shot_message.delete()
+    return True
+
+    
     @staticmethod
     async def has_media(link):
         normalized_link = X.normalize_url(link)
